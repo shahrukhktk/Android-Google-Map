@@ -1,16 +1,23 @@
 package com.srkteam.maptestingapp;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IInterface;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -38,6 +45,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private GoogleMap mMap;
     private static final int PERMISSION_REQUEST_CODE = 9001;
+    private static final int GPS_REQUEST_CODE = 9002;
     private boolean mLocationPermissionGranted;
     private FloatingActionButton floatingActionButton;
     private Double KUSTLAT = 33.523400;
@@ -51,17 +59,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        if(mLocationPermissionGranted)
+        if(isGPSEnabled())
         {
-            Toast.makeText(this, "Ready To Map", Toast.LENGTH_SHORT).show();
-        }
-        else
-        {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+            if(mLocationPermissionGranted)
             {
-                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+                Toast.makeText(this, "Ready To Map", Toast.LENGTH_SHORT).show();
+                // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+                SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                        .findFragmentById(R.id.map);
+                mapFragment.getMapAsync(this);
+            }
+            else
+            {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
                 {
-                    requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_CODE);
+                    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+                    {
+                        requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_CODE);
+                    }
                 }
             }
         }
@@ -101,10 +116,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
     }
 
     @Override
@@ -137,9 +148,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         gotoLocation(KUSTLAT, KUSTLNG);
 
         //UI CONTROL ON MAP
-//        mMap.getUiSettings().setZoomControlsEnabled(true);
-//        mMap.getUiSettings().setMyLocationButtonEnabled(true);
-//        mMap.getUiSettings().setMapToolbarEnabled(true);
+        mMap.getUiSettings().setZoomControlsEnabled(true);
+        mMap.getUiSettings().setMyLocationButtonEnabled(true);
+        mMap.getUiSettings().setMapToolbarEnabled(true);
     }
 
     private void gotoLocation(Double lat, Double lng)
@@ -192,8 +203,44 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         InputMethodManager iim = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
         iim.hideSoftInputFromWindow(view.getWindowToken(), 0);
-
     }
 
+    private boolean isGPSEnabled()
+    {
+        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        boolean providerEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        if(providerEnabled)
+        {
+            return true;
+        }else
+        {
+            AlertDialog alertDialog = new AlertDialog.Builder(this).setTitle("GPS Permission").setMessage("Enable your device GPS")
+                    .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            Intent settingsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                            startActivityForResult(settingsIntent, GPS_REQUEST_CODE);
+                        }
+                    }).setCancelable(false).show();
+        }
+        return false;
+    }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == GPS_REQUEST_CODE)
+        {
+            LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+            boolean providerEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+            if(providerEnabled)
+            {
+                Toast.makeText(this, "GPS Enabled", Toast.LENGTH_SHORT).show();
+            }
+            else
+            {
+                Toast.makeText(this, "GPS Not Enabled", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
 }
