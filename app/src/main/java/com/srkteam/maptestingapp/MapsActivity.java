@@ -61,16 +61,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(View view) {
                 if(mMap != null)
                 {
-                    double bottomBoundary = KUSTLAT - 0.1;
-                    double leftBoundary = KUSTLNG - 0.1;
-                    double topBoundary = KUSTLAT + 0.1;
-                    double rightBoundary = KUSTLNG + 0.1;
+                    double bottomBoundary = KUSTLAT - 0.3;
+                    double leftBoundary = KUSTLNG - 0.3;
+                    double topBoundary = KUSTLAT + 0.3;
+                    double rightBoundary = KUSTLNG + 0.3;
 
                     LatLngBounds kustBounds = new LatLngBounds(
                             new LatLng(bottomBoundary, leftBoundary),
                             new LatLng(topBoundary, rightBoundary)
                     );
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(kustBounds, 1));
+                    //Zoom Out
+//                    mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(kustBounds, 400, 400, 1));
+//                    mMap.setLatLngBoundsForCameraTarget(kustBounds);
+                    //Zoom In Focus to target
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(kustBounds.getCenter(), 16.0f));
                     showMarker(kustBounds.getCenter());
 
                 }
