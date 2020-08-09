@@ -8,6 +8,7 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -17,7 +18,9 @@ import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.security.Permission;
 
@@ -26,6 +29,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private static final int PERMISSION_REQUEST_CODE = 9001;
     private boolean mLocationPermissionGranted;
+    private FloatingActionButton floatingActionButton;
+    private Double KUSTLAT = 33.523400;
+    private Double KUSTLNG = 71.445774;
+
 
 
     @Override
@@ -46,8 +53,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_CODE);
                 }
             }
-
         }
+
+        floatingActionButton = findViewById(R.id.fab);
+        floatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(mMap != null)
+                {
+                    double bottomBoundary = KUSTLAT - 0.1;
+                    double leftBoundary = KUSTLNG - 0.1;
+                    double topBoundary = KUSTLAT + 0.1;
+                    double rightBoundary = KUSTLNG + 0.1;
+
+                    LatLngBounds kustBounds = new LatLngBounds(
+                            new LatLng(bottomBoundary, leftBoundary),
+                            new LatLng(topBoundary, rightBoundary)
+                    );
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(kustBounds, 1));
+                    showMarker(kustBounds.getCenter());
+
+                }
+            }
+        });
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -82,12 +110,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
 
         mMap = googleMap;
-        gotoLocation(-34.0, 151.0);
+        gotoLocation(KUSTLAT, KUSTLNG);
 
         //UI CONTROL ON MAP
-        mMap.getUiSettings().setZoomControlsEnabled(true);
-        mMap.getUiSettings().setMyLocationButtonEnabled(true);
-        mMap.getUiSettings().setMapToolbarEnabled(true);
+//        mMap.getUiSettings().setZoomControlsEnabled(true);
+//        mMap.getUiSettings().setMyLocationButtonEnabled(true);
+//        mMap.getUiSettings().setMapToolbarEnabled(true);
     }
 
     private void gotoLocation(Double lat, Double lng)
