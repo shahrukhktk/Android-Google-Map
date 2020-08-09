@@ -11,6 +11,7 @@ import android.location.Geocoder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IInterface;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -43,6 +44,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Double KUSTLNG = 71.445774;
     private EditText searchAddress;
     private Button btnLocate;
+    private String TAG;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -166,12 +168,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         String locationName = searchAddress.getText().toString();
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         try {
-             List<Address> addressList = geocoder.getFromLocationName(locationName, 1);
+//             List<Address> addressList = geocoder.getFromLocationName(locationName, 3);
+            List<Address> addressList = geocoder.getFromLocation(KUSTLAT, KUSTLNG, 3);
              if(addressList.size() > 0)
              {
                  Address address = addressList.get(0);
                  gotoLocation(address.getLatitude(), address.getLongitude());
                  mMap.addMarker(new MarkerOptions().position(new LatLng(address.getLatitude(), address.getLongitude())));
+             }
+             //for loop for getting multiple address
+             for(Address address : addressList)
+             {
+                 Log.d(TAG, "geoLocate: Address: "+address.getAddressLine(address.getMaxAddressLineIndex()));
              }
 
         } catch (IOException e) {
