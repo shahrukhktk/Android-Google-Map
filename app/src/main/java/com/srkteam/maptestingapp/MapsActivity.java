@@ -2,6 +2,7 @@ package com.srkteam.maptestingapp;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
@@ -59,22 +60,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        if(isGPSEnabled())
-        {
-            if(mLocationPermissionGranted)
-            {
+        if (isGPSEnabled()) {
+            if (mLocationPermissionGranted) {
                 Toast.makeText(this, "Ready To Map", Toast.LENGTH_SHORT).show();
-                // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-                SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                        .findFragmentById(R.id.map);
-                mapFragment.getMapAsync(this);
-            }
-            else
-            {
-                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
-                {
-                    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-                    {
+            } else {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_CODE);
                     }
                 }
@@ -94,8 +85,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(mMap != null)
-                {
+                if (mMap != null) {
                     double bottomBoundary = KUSTLAT - 0.3;
                     double leftBoundary = KUSTLNG - 0.3;
                     double topBoundary = KUSTLAT + 0.3;
@@ -116,18 +106,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
-    {
-        if(requestCode == PERMISSION_REQUEST_CODE && grantResults[0] == PackageManager.PERMISSION_GRANTED )
-        {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == PERMISSION_REQUEST_CODE && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
             Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
-        }
-        else
-        {
+        } else {
             Toast.makeText(this, "Permission Not Granted", Toast.LENGTH_SHORT).show();
         }
     }
@@ -144,12 +135,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
         mMap = googleMap;
+        mMap.setMyLocationEnabled(true);
         gotoLocation(KUSTLAT, KUSTLNG);
 
         //UI CONTROL ON MAP
         mMap.getUiSettings().setZoomControlsEnabled(true);
-        mMap.getUiSettings().setMyLocationButtonEnabled(true);
         mMap.getUiSettings().setMapToolbarEnabled(true);
     }
 
@@ -157,7 +159,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     {
         LatLng latLng = new LatLng(lat, lng);
 
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10.0f);
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 15.0f);
         showMarker(latLng);
 
         mMap.moveCamera(cameraUpdate);
@@ -168,7 +170,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void showMarker(LatLng latLng)
     {
         MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(latLng).title("Sydney");
+        markerOptions.position(latLng).title("KUST Kohat");
         mMap.addMarker(markerOptions);
     }
 
@@ -180,7 +182,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         try {
 //             List<Address> addressList = geocoder.getFromLocationName(locationName, 3);
-            List<Address> addressList = geocoder.getFromLocation(KUSTLAT, KUSTLNG, 3);
+            List<Address> addressList = geocoder.getFromLocationName(locationName, 1);
              if(addressList.size() > 0)
              {
                  Address address = addressList.get(0);
@@ -188,10 +190,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                  mMap.addMarker(new MarkerOptions().position(new LatLng(address.getLatitude(), address.getLongitude())));
              }
              //for loop for getting multiple address
-             for(Address address : addressList)
-             {
-                 Log.d(TAG, "geoLocate: Address: "+address.getAddressLine(address.getMaxAddressLineIndex()));
-             }
+//             for(Address address : addressList)
+//             {
+//                 Log.d(TAG, "geoLocate: Address: "+address.getAddressLine(address.getMaxAddressLineIndex()));
+//             }
 
         } catch (IOException e) {
             e.printStackTrace();

@@ -41,6 +41,7 @@
         android:layout_marginRight="10dp"
         android:layout_marginBottom="10dp"
         android:src="@mipmap/ic_launcher"
+        android:visibility="gone"
         map:layout_constraintBottom_toBottomOf="parent"
         map:layout_constraintEnd_toEndOf="parent" />
 
